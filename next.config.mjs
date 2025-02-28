@@ -6,7 +6,6 @@ const nextConfig = {
     domains: ['firebasestorage.googleapis.com'],
   },
   webpack: (config, { isServer }) => {
-    // Handle client-side modules
     if (!isServer) {
       config.resolve.fallback = {
         ...config.resolve.fallback,
@@ -19,6 +18,9 @@ const nextConfig = {
         https: false,
         zlib: false,
       };
+
+      // Add undici to external modules
+      config.externals = [...(config.externals || []), 'undici'];
     }
 
     // Handle audio files
@@ -29,10 +31,12 @@ const nextConfig = {
 
     return config;
   },
-  // Enable better ESM support
+  // Transpile specific modules
+  transpilePackages: ['@firebase/auth'],
   experimental: {
-    esmExternals: true,
-    serverComponentsExternalPackages: ['firebase', '@firebase/auth'],
+    // Disable experimental features that might cause issues
+    esmExternals: false,
+    serverComponentsExternalPackages: [],
   },
 };
 
