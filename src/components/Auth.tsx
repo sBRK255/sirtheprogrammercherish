@@ -1,13 +1,8 @@
 'use client';
 
 import { useState } from 'react';
-import { signInWithEmailAndPassword } from 'firebase/auth';
 import { auth } from '@/lib/firebase';
-import LoadingSpinner from './LoadingSpinner';
-
-interface AuthProps {
-  onLogin: (username: string) => void;
-}
+import { signInWithEmailAndPassword } from 'firebase/auth';
 
 const USERS = {
   'sirtheprogrammer': {
@@ -20,66 +15,104 @@ const USERS = {
   }
 };
 
+interface AuthProps {
+  onLogin: (username: string) => void;
+}
+
 export default function Auth({ onLogin }: AuthProps) {
-  const [selectedUser, setSelectedUser] = useState<string>('');
-  const [error, setError] = useState<string>('');
+  const [username, setUsername] = useState('');
+  const [password, setPassword] = useState('');
+  const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
 
-  const handleLogin = async (username: string) => {
-    setLoading(true);
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
     setError('');
-    
-    try {
-      const user = USERS[username as keyof typeof USERS];
-      if (!user) {
-        throw new Error('Invalid user');
-      }
+    setLoading(true);
 
-      await signInWithEmailAndPassword(auth, user.email, user.password);
+    const user = USERS[username as keyof typeof USERS];
+    if (!user) {
+      setError('Invalid username');
+      setLoading(false);
+      return;
+    }
+
+    try {
+      await signInWithEmailAndPassword(auth, user.email, password);
       onLogin(username);
-    } catch (err: any) {
+    } catch (err) {
+      setError('Invalid password');
       console.error('Login error:', err);
-      setError(err.message || 'Failed to login');
     } finally {
       setLoading(false);
     }
   };
 
-  if (loading) {
-    return <LoadingSpinner />;
-  }
-
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-100">
-      <div className="p-8 bg-white rounded-lg shadow-md w-96">
-        <h1 className="text-2xl font-bold mb-6 text-center text-gray-800">Choose Your User</h1>
-        
-        {error && (
-          <div className="mb-4 p-3 bg-red-100 text-red-700 rounded">
-            {error}
-          </div>
-        )}
-
-        <div className="space-y-4">
-          {Object.keys(USERS).map((username) => (
-            <button
-              key={username}
-              onClick={() => handleLogin(username)}
-              disabled={loading}
-              className={`w-full p-4 rounded transition ${
-                loading
-                  ? 'bg-gray-300 cursor-not-allowed'
-                  : 'bg-blue-500 hover:bg-blue-600 text-white'
-              }`}
-            >
-              {loading && selectedUser === username ? (
-                <span>Logging in...</span>
-              ) : (
-                <span className="capitalize">{username}</span>
-              )}
-            </button>
-          ))}
+      <div className="max-w-md w-full space-y-8 p-8 bg-white rounded-xl shadow-lg">
+        <div>
+          <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900">
+            Welcome to Mood Chat
+          </h2>
+          <p className="mt-2 text-center text-sm text-gray-600">
+            Please sign in to continue
+          </p>
         </div>
+        <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
+          <div className="rounded-md shadow-sm -space-y-px">
+            <div>
+              <label htmlFor="username" className="sr-only">
+                Username
+              </label>
+              <input
+                id="username"
+                name="username"
+                type="text"
+                required
+                className="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-t-md focus:outline-none focus:ring-blue-500 focus:border-blue-500 focus:z-10 sm:text-sm"
+                placeholder="Username"
+                value={username}
+                onChange={(e) => setUsername(e.target.value)}
+                disabled={loading}
+              />
+            </div>
+            <div>
+              <label htmlFor="password" className="sr-only">
+                Password
+              </label>
+              <input
+                id="password"
+                name="password"
+                type="password"
+                required
+                className="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-b-md focus:outline-none focus:ring-blue-500 focus:border-blue-500 focus:z-10 sm:text-sm"
+                placeholder="Password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                disabled={loading}
+              />
+            </div>
+          </div>
+
+          {error && (
+            <div className="text-red-500 text-sm text-center">{error}</div>
+          )}
+
+          <div>
+            <button
+              type="submit"
+              disabled={loading}
+              className={`group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white ${
+                loading
+                  ? 'bg-blue-400 cursor-not-allowed'
+                  : 'bg-blue-600 hover:bg-blue-700'
+              } focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500`}
+            >
+              {loading ? 'Signing in...' : 'Sign in'}
+            </button>
+          </div>
+        </form>
       </div>
     </div>
   );
