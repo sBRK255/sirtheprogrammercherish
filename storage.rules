@@ -1,17 +1,50 @@
 rules_version = '2';
+
 service firebase.storage {
   match /b/{bucket}/o {
-    match /images/{imageId} {
-      allow read: if request.auth != null;
-      allow write: if request.auth != null 
-        && request.resource.size < 5 * 1024 * 1024 // 5MB
-        && request.resource.contentType.matches('image/.*');
+    // Helper function to check if user is authenticated
+    function isAuthenticated() {
+      return request.auth != null;
     }
-    match /voice/{voiceId} {
-      allow read: if request.auth != null;
-      allow write: if request.auth != null
-        && request.resource.size < 10 * 1024 * 1024 // 10MB
-        && request.resource.contentType.matches('audio/.*');
+
+    // Helper function to check if the user is one of our app users
+    function isAppUser() {
+      return isAuthenticated() &&
+        (request.auth.token.email == 'sirtheprogrammer@moodchat.com' ||
+         request.auth.token.email == 'leylah@moodchat.com');
+    }
+
+    // Helper function to check file size (max 10MB)
+    function isValidSize() {
+      return request.resource.size <= 10 * 1024 * 1024;
+    }
+
+    // Helper function to check if file type is allowed
+    function isAllowedType() {
+      return request.resource.contentType.matches('audio/.*') ||
+             request.resource.contentType.matches('image/.*');
+    }
+
+    // Voice messages rules
+    match /voice-messages/{userId}/{messageId} {
+      allow read: if isAppUser();
+      allow create: if isAppUser() &&
+        userId == request.auth.token.email &&
+        isValidSize() &&
+        request.resource.contentType.matches('audio/.*');
+      allow delete: if isAppUser() &&
+        userId == request.auth.token.email;
+    }
+
+    // Image attachments rules
+    match /images/{userId}/{imageId} {
+      allow read: if isAppUser();
+      allow create: if isAppUser() &&
+        userId == request.auth.token.email &&
+        isValidSize() &&
+        request.resource.contentType.matches('image/.*');
+      allow delete: if isAppUser() &&
+        userId == request.auth.token.email;
     }
   }
 }

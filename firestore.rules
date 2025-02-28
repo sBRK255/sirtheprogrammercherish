@@ -1,11 +1,37 @@
 rules_version = '2';
+
 service cloud.firestore {
   match /databases/{database}/documents {
+    // Helper function to check if user is authenticated
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+
+    // Helper function to check if the user is one of our app users
+    function isAppUser() {
+      return isAuthenticated() &&
+        (request.auth.token.email == 'sirtheprogrammer@moodchat.com' ||
+         request.auth.token.email == 'leylah@moodchat.com');
+    }
+
+    // Messages collection rules
     match /messages/{messageId} {
-      allow read: if request.auth != null && 
-        resource.data.participants.hasAny([request.auth.token.email]);
-      allow create: if request.auth != null && 
-        request.resource.data.participants.hasAny([request.auth.token.email]);
+      // Allow read if user is authenticated and is one of our app users
+      allow read: if isAppUser();
+      
+      // Allow write if user is authenticated, is an app user, and the message belongs to them
+      allow create: if isAppUser() && 
+        request.resource.data.senderId == request.auth.token.email;
+      
+      allow update, delete: if isAppUser() && 
+        resource.data.senderId == request.auth.token.email;
+    }
+
+    // User profiles collection rules
+    match /users/{userId} {
+      allow read: if isAppUser();
+      allow write: if isAppUser() && 
+        userId == request.auth.token.email;
     }
   }
 }
