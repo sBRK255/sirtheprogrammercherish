@@ -1,9 +1,8 @@
 'use client';
 
-import { initializeApp, getApps, getApp } from "firebase/app";
-import { getFirestore } from "firebase/firestore";
-import { getAuth, createUserWithEmailAndPassword, connectAuthEmulator } from "firebase/auth";
-import { getStorage } from "firebase/storage";
+import { initializeApp, getApps } from 'firebase/app';
+import { getAuth } from 'firebase/auth';
+import { getFirestore } from 'firebase/firestore';
 
 const firebaseConfig = {
   apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
@@ -16,34 +15,8 @@ const firebaseConfig = {
 };
 
 // Initialize Firebase only on the client side and only once
-let app = getApps().length === 0 ? initializeApp(firebaseConfig) : getApps()[0];
+const app = getApps().length === 0 ? initializeApp(firebaseConfig) : getApps()[0];
 
-// Get Auth, Firestore, and Storage instances
-let auth = getAuth(app);
-let db = getFirestore(app);
-let storage = getStorage(app);
-
-// Initialize default users
-const initializeDefaultUsers = async () => {
-  try {
-    await createUserWithEmailAndPassword(auth, 'sirtheprogrammer@moodchat.com', '013199');
-  } catch (error: any) {
-    if (error.code !== 'auth/email-already-in-use') {
-      console.error('Error creating sirtheprogrammer:', error);
-    }
-  }
-
-  try {
-    await createUserWithEmailAndPassword(auth, 'leylah@moodchat.com', '0131');
-  } catch (error: any) {
-    if (error.code !== 'auth/email-already-in-use') {
-      console.error('Error creating leylah:', error);
-    }
-  }
-};
-
-if (typeof window !== 'undefined') {
-  initializeDefaultUsers();
-}
-
-export { db, auth, storage };
+// Get Auth and Firestore instances
+export const auth = getAuth(app);
+export const db = getFirestore(app);
