@@ -5,7 +5,17 @@ const nextConfig = {
   images: {
     domains: ['firebasestorage.googleapis.com'],
   },
-  webpack: (config) => {
+  webpack: (config, { isServer }) => {
+    if (!isServer) {
+      config.resolve.fallback = {
+        ...config.resolve.fallback,
+        fs: false,
+        net: false,
+        tls: false,
+        crypto: false,
+      };
+    }
+
     config.module.rules.push({
       test: /\.mp3$/,
       use: {
@@ -17,7 +27,11 @@ const nextConfig = {
         },
       },
     });
+
     return config;
+  },
+  experimental: {
+    esmExternals: 'loose',
   },
 };
 
