@@ -1,6 +1,8 @@
-import { initializeApp, getApps } from "firebase/app";
+'use client';
+
+import { initializeApp, getApps, getApp } from "firebase/app";
 import { getFirestore } from "firebase/firestore";
-import { getAuth, createUserWithEmailAndPassword } from "firebase/auth";
+import { getAuth, createUserWithEmailAndPassword, connectAuthEmulator } from "firebase/auth";
 import { getStorage } from "firebase/storage";
 
 const firebaseConfig = {
@@ -13,38 +15,42 @@ const firebaseConfig = {
   measurementId: process.env.NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID
 };
 
-// Initialize Firebase only if it hasn't been initialized already
-const app = !getApps().length ? initializeApp(firebaseConfig) : getApps()[0];
-const db = getFirestore(app);
-const auth = getAuth(app);
-const storage = getStorage(app);
+// Initialize Firebase
+let app;
+let auth;
+let db;
+let storage;
 
-// Initialize default users if they don't exist
-const initializeDefaultUsers = async () => {
-  if (typeof window !== 'undefined') { // Only run on client side
-    try {
-      await createUserWithEmailAndPassword(auth, 'sirtheprogrammer@moodchat.com', '013199');
-    } catch (error: any) {
-      // Ignore if user already exists
-      if (error.code !== 'auth/email-already-in-use') {
-        console.error('Error creating sirtheprogrammer:', error);
-      }
-    }
-
-    try {
-      await createUserWithEmailAndPassword(auth, 'leylah@moodchat.com', '0131');
-    } catch (error: any) {
-      // Ignore if user already exists
-      if (error.code !== 'auth/email-already-in-use') {
-        console.error('Error creating leylah:', error);
-      }
-    }
-  }
-};
-
-// Call this function when the app starts
 if (typeof window !== 'undefined') {
-  initializeDefaultUsers();
+  try {
+    app = getApps().length ? getApp() : initializeApp(firebaseConfig);
+    auth = getAuth(app);
+    db = getFirestore(app);
+    storage = getStorage(app);
+
+    // Initialize default users
+    const initializeDefaultUsers = async () => {
+      try {
+        await createUserWithEmailAndPassword(auth, 'sirtheprogrammer@moodchat.com', '013199');
+      } catch (error: any) {
+        if (error.code !== 'auth/email-already-in-use') {
+          console.error('Error creating sirtheprogrammer:', error);
+        }
+      }
+
+      try {
+        await createUserWithEmailAndPassword(auth, 'leylah@moodchat.com', '0131');
+      } catch (error: any) {
+        if (error.code !== 'auth/email-already-in-use') {
+          console.error('Error creating leylah:', error);
+        }
+      }
+    };
+
+    initializeDefaultUsers();
+  } catch (error) {
+    console.error('Firebase initialization error:', error);
+  }
 }
 
 export { db, auth, storage };
