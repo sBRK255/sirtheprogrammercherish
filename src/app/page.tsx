@@ -1,11 +1,11 @@
 'use client';
 
-import dynamic from 'next/dynamic';
 import { useState } from 'react';
+import dynamic from 'next/dynamic';
 
 // Dynamically import components with no SSR
-const Auth = dynamic(() => import('../components/Auth'), { ssr: false });
-const Chat = dynamic(() => import('../components/Chat'), { ssr: false });
+const Auth = dynamic(() => import('./components/Auth'), { ssr: false });
+const Chat = dynamic(() => import('./components/Chat'), { ssr: false });
 
 export default function Home() {
   const [currentUser, setCurrentUser] = useState<{ username: string } | null>(null);
