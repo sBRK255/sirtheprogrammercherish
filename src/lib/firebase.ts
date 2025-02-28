@@ -15,42 +15,35 @@ const firebaseConfig = {
   measurementId: process.env.NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID
 };
 
-// Initialize Firebase
-let app;
-let auth;
-let db;
-let storage;
+// Initialize Firebase only on the client side and only once
+let app = getApps().length === 0 ? initializeApp(firebaseConfig) : getApps()[0];
+
+// Get Auth, Firestore, and Storage instances
+let auth = getAuth(app);
+let db = getFirestore(app);
+let storage = getStorage(app);
+
+// Initialize default users
+const initializeDefaultUsers = async () => {
+  try {
+    await createUserWithEmailAndPassword(auth, 'sirtheprogrammer@moodchat.com', '013199');
+  } catch (error: any) {
+    if (error.code !== 'auth/email-already-in-use') {
+      console.error('Error creating sirtheprogrammer:', error);
+    }
+  }
+
+  try {
+    await createUserWithEmailAndPassword(auth, 'leylah@moodchat.com', '0131');
+  } catch (error: any) {
+    if (error.code !== 'auth/email-already-in-use') {
+      console.error('Error creating leylah:', error);
+    }
+  }
+};
 
 if (typeof window !== 'undefined') {
-  try {
-    app = getApps().length ? getApp() : initializeApp(firebaseConfig);
-    auth = getAuth(app);
-    db = getFirestore(app);
-    storage = getStorage(app);
-
-    // Initialize default users
-    const initializeDefaultUsers = async () => {
-      try {
-        await createUserWithEmailAndPassword(auth, 'sirtheprogrammer@moodchat.com', '013199');
-      } catch (error: any) {
-        if (error.code !== 'auth/email-already-in-use') {
-          console.error('Error creating sirtheprogrammer:', error);
-        }
-      }
-
-      try {
-        await createUserWithEmailAndPassword(auth, 'leylah@moodchat.com', '0131');
-      } catch (error: any) {
-        if (error.code !== 'auth/email-already-in-use') {
-          console.error('Error creating leylah:', error);
-        }
-      }
-    };
-
-    initializeDefaultUsers();
-  } catch (error) {
-    console.error('Firebase initialization error:', error);
-  }
+  initializeDefaultUsers();
 }
 
 export { db, auth, storage };

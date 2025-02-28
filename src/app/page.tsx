@@ -1,30 +1,25 @@
 'use client';
 
-import { useState, useEffect } from 'react';
 import dynamic from 'next/dynamic';
+import { useState } from 'react';
 
-// Dynamically import components that use Firebase
-const Auth = dynamic(() => import('@/components/Auth'), {
-  ssr: false,
-});
-
-const Chat = dynamic(() => import('@/components/Chat'), {
-  ssr: false,
-});
+// Dynamically import components with no SSR
+const Auth = dynamic(() => import('@/components/Auth'), { ssr: false });
+const Chat = dynamic(() => import('@/components/Chat'), { ssr: false });
 
 export default function Home() {
-  const [user, setUser] = useState<string | null>(null);
+  const [currentUser, setCurrentUser] = useState<{ username: string } | null>(null);
 
   const handleLogin = (username: string) => {
-    setUser(username);
+    setCurrentUser({ username });
   };
 
   return (
     <main className="min-h-screen">
-      {!user ? (
+      {!currentUser ? (
         <Auth onLogin={handleLogin} />
       ) : (
-        <Chat currentUser={{ username: user }} />
+        <Chat currentUser={currentUser} />
       )}
     </main>
   );
