@@ -2,6 +2,10 @@
 const nextConfig = {
   webpack: (config, { isServer }) => {
     if (!isServer) {
+      config.resolve.alias = {
+        ...config.resolve.alias,
+        'undici': false,
+      };
       config.resolve.fallback = {
         ...config.resolve.fallback,
         fs: false,
@@ -22,7 +26,8 @@ const nextConfig = {
     '@firebase/app',
     '@firebase/firestore',
     'firebase',
-    '@supabase/supabase-js'
+    '@supabase/supabase-js',
+    'undici'
   ]
 };
 

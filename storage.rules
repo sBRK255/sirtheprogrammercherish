@@ -46,5 +46,15 @@ service firebase.storage {
       allow delete: if isAppUser() &&
         userId == request.auth.token.email;
     }
+
+    // New rules for images and audios
+    match /images/{imageId} {
+      allow read: if true;
+      allow write: if request.auth != null;
+    }
+    match /audios/{audioId} {
+      allow read: if true;
+      allow write: if request.auth != null;
+    }
   }
 }

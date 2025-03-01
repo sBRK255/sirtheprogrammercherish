@@ -16,15 +16,16 @@ service cloud.firestore {
 
     // Messages collection rules
     match /messages/{messageId} {
-      // Allow read if user is authenticated and is one of our app users
-      allow read: if isAppUser();
-      
-      // Allow write if user is authenticated, is an app user, and the message belongs to them
-      allow create: if isAppUser() && 
-        request.resource.data.senderId == request.auth.token.email;
-      
-      allow update, delete: if isAppUser() && 
-        resource.data.senderId == request.auth.token.email;
+      allow read: if true;
+      allow create: if request.auth != null &&
+        request.resource.data.sender is string &&
+        request.resource.data.timestamp is timestamp &&
+        request.resource.data.type in ['text', 'image', 'audio'] &&
+        (
+          (request.resource.data.type == 'text' && request.resource.data.text is string) ||
+          (request.resource.data.type == 'image' && request.resource.data.imageUrl is string) ||
+          (request.resource.data.type == 'audio' && request.resource.data.audioUrl is string)
+        );
     }
 
     // User profiles collection rules

@@ -1,26 +1,29 @@
 'use client';
 
-import { useState } from 'react';
-import dynamic from 'next/dynamic';
-
-// Dynamically import components with no SSR
-const Auth = dynamic(() => import('./components/Auth'), { ssr: false });
-const Chat = dynamic(() => import('./components/Chat'), { ssr: false });
+import { useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 
 export default function Home() {
-  const [currentUser, setCurrentUser] = useState<{ username: string } | null>(null);
+  const router = useRouter();
 
-  const handleLogin = (username: string) => {
-    setCurrentUser({ username });
-  };
+  useEffect(() => {
+    // Check if user is already logged in
+    const isLoggedIn = document.cookie.includes('auth=true');
+    
+    // Redirect based on auth status
+    if (isLoggedIn) {
+      router.replace('/chat');
+    } else {
+      router.replace('/login');
+    }
+  }, [router]);
 
+  // Show loading state while redirecting
   return (
-    <main className="min-h-screen">
-      {!currentUser ? (
-        <Auth onLogin={handleLogin} />
-      ) : (
-        <Chat currentUser={currentUser} />
-      )}
-    </main>
+    <div className="flex items-center justify-center min-h-screen">
+      <div className="p-4 rounded-lg bg-gradient-to-r from-purple-900/90 via-pink-800/90 to-indigo-900/90 backdrop-blur-sm">
+        <div className="w-8 h-8 border-4 border-purple-500 border-t-transparent rounded-full animate-spin"></div>
+      </div>
+    </div>
   );
 }
